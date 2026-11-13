@@ -1,7 +1,7 @@
 /* Offline support for roaming: the page, code, route and phone-size photos are
    stored on first visit; afterwards the site opens with no signal at all.
    HTML: network first (fresh when online). Everything else: cache first. */
-const V = "road-atlas-v1";
+const V = "november-noir-v2";
 const CORE = ["./", "index.html", "css/style.css", "js/trip.js", "js/photos.js", "js/app.js", "data/route.geojson", "data/elev-wed.json"];
 self.addEventListener("install", (e) => e.waitUntil((async () => {
   const c = await caches.open(V);
@@ -24,6 +24,13 @@ self.addEventListener("fetch", (e) => {
       .catch(() => caches.match("index.html")));
     return;
   }
+  // code + data: network first, so a redesign reaches phones that visited before
+  if (u.origin === location.origin && /\.(css|js|json|geojson)$/.test(u.pathname)) {
+    e.respondWith(fetch(e.request).then((r) => { const copy = r.clone(); caches.open(V).then((c) => c.put(e.request, copy)); return r; })
+      .catch(() => caches.match(e.request)));
+    return;
+  }
+  // photos + fonts: cache first
   e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request).then((r) => {
     if (r.ok || r.type === "opaque") { const copy = r.clone(); caches.open(V).then((c) => c.put(e.request, copy)); }
     return r;

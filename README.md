@@ -1,4 +1,4 @@
-# Road Atlas, November
+# November Noir
 
 A trip bible for a 6-day camper van trip in November 2026: Delft → Frankfurt → Bolzano → Venice → Verona → Partnachklamm → highline179 → Ulm → Marburg. It's a static site with no build step.
 

@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Road Atlas, November</title>
+  <title>November Noir</title>
   <meta name="description" content="Six days by camper van: Delft, the Brenner, Venice, Verona, the Alps and Marburg. 14–19 Nov 2026.">
-  <meta name="theme-color" content="#E8ECEB" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#16202A" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='12' width='56' height='40' rx='8' fill='%2300733E' stroke='white' stroke-width='4'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='700' font-size='24' fill='white' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0E0A12">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E0A12'/%3E%3Ctext x='32' y='45' font-family='Georgia' font-style='italic' font-size='38' fill='%23D8C08A' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Overpass:wght@400..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600;1,700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap">
   <link rel="preload" as="image" type="image/avif" href="img/cover-960.avif" imagesrcset="img/cover-480.avif 480w, img/cover-960.avif 960w, img/cover-1600.avif 1600w" imagesizes="100vw">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="dance" aria-hidden="true"><svg class="strand gold" id="strand-gold" preserveAspectRatio="none"></svg><svg class="strand orchid" id="strand-orchid" preserveAspectRatio="none"></svg></div>
   <a class="skip" href="#days">Skip to the days</a>
 
   <nav class="daynav" aria-label="Days">
@@ -27,7 +27,8 @@
   <header class="cover" id="top">
     <picture class="cover-img" id="cover-pic"></picture>
     <div class="cover-text">
-      <h1>Road Atlas, <span>November</span></h1>
+      <p class="cover-kicker">Five nights, one van, no regrets</p>
+      <h1>November <span>Noir</span></h1>
       <p class="cover-route" id="cover-route"></p>
       <p class="cover-sub" id="cover-sub"></p>
       <p class="cover-cue" aria-hidden="true">Scroll to start driving</p>
@@ -37,6 +38,7 @@
 
   <section class="journey" id="journey" aria-label="The whole route, drawn as you scroll">
     <div class="journey-sticky">
+      <p class="journey-title">The whole affair, from Delft to Marburg</p>
       <svg class="journey-map" id="journey-map" role="img" aria-label="Route map: Delft, Frankfurt, Bolzano, Venice, Verona, Garmisch, Reutte, Ulm, Marburg"></svg>
       <div class="journey-card" id="journey-card" aria-live="polite"></div>
     </div>
@@ -46,7 +48,7 @@
 
   <section class="tools" id="map" aria-labelledby="h-map">
     <div class="tools-inner">
-      <h2 class="tools-h" id="h-map">The map</h2>
+      <h2 class="tools-h" id="h-map">The map <em>every pin, every turn</em></h2>
       <p class="tools-lede">Every stop and the real route. Tap a pin for directions. Fuel pins show live Austrian diesel prices.</p>
       <div class="leaflet-box" id="leaflet" role="region" aria-label="Interactive route map"><p class="map-wait">Loading the map…</p></div>
       <div class="links">
@@ -58,7 +60,7 @@
 
   <section class="tools" id="live" aria-labelledby="h-live">
     <div class="tools-inner">
-      <h2 class="tools-h" id="h-live">Weather and diesel, live</h2>
+      <h2 class="tools-h" id="h-live">Weather &amp; diesel <em>live, as it happens</em></h2>
       <p class="tools-lede" id="wx-status">Forecast for each night's stop, from Open-Meteo.</p>
       <ol class="wx" id="wx"></ol>
       <h3 class="section-h fuel-h">Cheapest diesel in Austria</h3>
@@ -73,7 +75,7 @@
 
   <section class="tools" id="budget" aria-labelledby="h-budget">
     <div class="tools-inner">
-      <h2 class="tools-h" id="h-budget">The budget</h2>
+      <h2 class="tools-h" id="h-budget">The money <em>what it costs us</em></h2>
       <p class="tools-lede">What the trip costs on top of the van rental and food, split between two people.</p>
       <div class="budget" id="budget-box"></div>
     </div>
@@ -81,7 +83,7 @@
 
   <section class="tools" id="lists" aria-labelledby="h-lists">
     <div class="tools-inner">
-      <h2 class="tools-h" id="h-lists">Before the first kilometre</h2>
+      <h2 class="tools-h" id="h-lists">Before we go <em>papers, rules, the bag</em></h2>
       <p class="tools-lede">Tick things off. Ticks are saved on this phone only, so each of you keeps your own list.</p>
       <div class="lists">
         <section aria-labelledby="h-docs"><h3 class="section-h" id="h-docs">Papers and rules</h3><ul class="checks" id="docs"></ul></section>
@@ -95,7 +97,7 @@
 
   <section class="tools sos" id="sos" aria-labelledby="h-sos">
     <div class="tools-inner">
-      <h2 class="tools-h" id="h-sos">If something goes wrong</h2>
+      <h2 class="tools-h" id="h-sos">If it goes wrong <em>one tap to call</em></h2>
       <p class="tools-lede">Tap a number to call. 112 is free and works in every country on this trip, even when the screen is locked or you have no credit. Operators often speak English.</p>
       <ul class="sos-list" id="sos-list"></ul>
       <p class="sos-note">Also keep the rental company's breakdown number and your insurance details saved offline. They're not on this page because the site is public.</p>

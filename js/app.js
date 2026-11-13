@@ -38,7 +38,7 @@
     const lic = p.licenseUrl ? `<a href="${esc(p.licenseUrl)}" rel="license">${esc(p.license)}</a>` : esc(p.license);
     return `Photo: <a href="${esc(p.page)}">${esc(p.author)}</a>, ${lic}`;
   }
-  const roadBadges = (s) => s.split(" · ").map((r) => `<span class="road-no${/^A/.test(r) ? "" : " b"}">${esc(r)}</span>`).join("");
+  const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII"];
 
   /* ---------- cover ---------- */
   $("#cover-pic").outerHTML = `<picture class="cover-img">${pic("cover", { eager: true }).replace(/^<picture>|<\/picture>$/g, "")}</picture>`;
@@ -51,7 +51,7 @@
     const h1 = $(".cover h1"), lines = [...h1.childNodes].map((n) => n.textContent.trim()).filter(Boolean);
     h1.setAttribute("aria-label", lines.join(" "));
     let i = 0;
-    h1.innerHTML = lines.map((line) => `<span aria-hidden="true">${line.split(" ").map((w) =>
+    h1.innerHTML = lines.map((line, li) => `<span class="w${li + 1}" aria-hidden="true">${line.split(" ").map((w) =>
       `<span class="w">${[...w].map((c) => `<span class="ch" style="--i:${i++}">${esc(c)}</span>`).join("")}</span>`).join(" ")}</span>`).join("");
     const routeText = `${T.title}, ${T.totalKm.toLocaleString("en")} km, ${T.dates}`, el = $("#cover-route");
     if (calm) el.textContent = routeText;
@@ -65,6 +65,25 @@
     }
   }
 
+  /* ---------- the dance: two strands woven once, then moved by CSS (transform only) ---------- */
+  {
+    const strand = (phase, ampBase, turns) => {
+      let d = "", N = 240;
+      for (let i = 0; i <= N; i++) {
+        const t = i / N, y = t * 3000;
+        const amp = ampBase * (0.55 + 0.45 * Math.sin(t * Math.PI * 3 + phase));        // breathes in and out
+        const x = 50 + amp * Math.sin(t * Math.PI * 2 * turns + phase) + 8 * Math.sin(t * 37 + phase);
+        d += `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(1)}`;
+      }
+      return d;
+    };
+    for (const [id, ph, amp, turns] of [["strand-gold", 0, 44, 7], ["strand-orchid", 2.1, 40, 8.5]]) {
+      const el = document.getElementById(id);
+      el.setAttribute("viewBox", "0 0 100 3000");
+      el.innerHTML = `<path d="${strand(ph, amp, turns)}"/>`;
+    }
+  }
+
   /* ---------- nav ---------- */
   $("#daynav-list").innerHTML = T.days.map((d) =>
     `<li><a href="#${d.id}" data-day="${d.id}">${d.dow}<small>${d.day.split(" ")[0]}</small></a></li>`).join("");
@@ -75,10 +94,11 @@
     const sign = `<div class="sign-wrap">
       <div class="sign" role="group" aria-label="Drive for ${esc(d.dow)}">
         <div class="sign-inner">
+          <p class="sign-title">The drive</p>
           <ol class="sign-legs">
             ${dr.legs.map(([dest, km, roads]) => `
               <li><span class="sign-dest">${esc(dest)}</span><span class="sign-km">${km} km</span>
-                  <span class="sign-roads">${roadBadges(roads)}</span></li>`).join("")}
+                  <span class="sign-roads">via ${esc(roads.split(" · ").join(", "))}</span></li>`).join("")}
           </ol>
           <div class="sign-total">
             <div><b>${dr.km}</b><span>km today</span></div>
@@ -93,8 +113,9 @@
 
     const sleep = d.sleep ? `
       <section class="sleep" aria-label="Where we sleep">
-        <div class="p-sign" aria-hidden="true">P</div>
+        <div class="p-sign" aria-hidden="true">☾</div>
         <div>
+          <p class="sleep-label">Where we sleep</p>
           <h3>${esc(d.sleep.name)}</h3>
           <p class="sleep-price">${esc(d.sleep.price)}</p>
           <p>${esc(d.sleep.note)}</p>
@@ -105,8 +126,8 @@
         </div>
       </section>` : `
       <section class="sleep" aria-label="Van return">
-        <div class="p-sign" aria-hidden="true" style="background:var(--eroad);box-shadow:0 0 0 1.5px var(--eroad)">✓</div>
-        <div><h3>No night: the van goes back</h3><p>${esc(T.returnDeadline)}</p></div>
+        <div class="p-sign" aria-hidden="true">✦</div>
+        <div><p class="sleep-label">The last act</p><h3>No night: the van goes back</h3><p>${esc(T.returnDeadline)}</p></div>
       </section>`;
 
     const road = `
@@ -138,11 +159,11 @@
         <header class="day-hero">
           ${pic(d.hero, { sizes: "(max-width: 700px) 130vw, 100vw" })}
           <div class="hero-text">
-            <span class="shield" aria-label="Day ${Number(d.n)}">${d.n}</span>
+            <span class="shield" aria-label="Day ${Number(d.n)}"><small>Nº</small>${ROMAN[Number(d.n)]}</span>
             <p class="day-when">${d.dow} ${d.day}, ${esc(d.place)}</p>
-            <h2 id="h-${d.id}">${esc(d.title)}</h2>
+            <h2 id="h-${d.id}"><span class="mask"><span>${esc(d.title)}</span></span></h2>
             <p class="day-lede">${esc(d.lede)}</p>
-            <span class="mood-tag" data-m="${d.mood}">${T.moods[d.mood].label}: ${T.moods[d.mood].note.toLowerCase()}</span>
+            <span class="mood-tag" data-m="${d.mood}"><b>${T.moods[d.mood].label}</b> ${T.moods[d.mood].note.toLowerCase()}</span>
           </div>
           <p class="credit hero-credit">${credit(d.hero)}</p>
         </header>
@@ -185,6 +206,7 @@
       <h3 class="section-h">Up, over, down: the Wednesday profile</h3>
       <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevation along Wednesday's route: Verona ${pts[0][1]} m, Brenner ${top[1]} m, Ulm ${pts.at(-1)[1]} m">
         ${[500, 1000].map((m) => `<line class="grid" x1="0" x2="${W}" y1="${y(m)}" y2="${y(m)}"/><text class="lbl-s" x="0" y="${y(m) - 5}">${m.toLocaleString("en")} m</text>`).join("")}
+        <defs><linearGradient id="altfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D88FC4" stop-opacity=".45"/><stop offset="1" stop-color="#3B1456" stop-opacity="0"/></linearGradient></defs>
         <path class="area" d="${line}L${W},${H - padB}L0,${H - padB}Z"/>
         <path class="line" d="${line}" pathLength="1"/>
         <g>
@@ -243,8 +265,7 @@
           <circle cx="${st.xy[0]}" cy="${st.xy[1]}" r="${st.night ? 5.5 : 4}"/>
           <text x="${st.xy[0] + (st.side === "end" ? -10 : 10)}" y="${st.xy[1] + 4}" text-anchor="${st.side}">${st.name}</text></g>`).join("")}
       <g class="van" id="van" aria-hidden="true">
-        <rect x="-11" y="-8" width="16" height="10" rx="2"/><path d="M5 -5h4l3 3.5V2H5z"/>
-        <circle cx="-6" cy="3" r="2.2"/><circle cx="7" cy="3" r="2.2"/>
+        <circle class="halo" r="11"/><circle class="core" r="5"/>
       </g>`;
     Object.assign(journey, { ready: true, path: $("#jr"), van: $("#van"), stops: [...svg.querySelectorAll(".stop")],
       stopF: stops.map((s) => s.f), dayEndF, len: $("#jr").getTotalLength() });
@@ -256,7 +277,7 @@
   function renderCard(i) {
     if (i === cardDay) return; cardDay = i;
     const d = T.days[i];
-    card.innerHTML = `<span class="shield" aria-hidden="true">${d.n}</span>
+    card.innerHTML = `<span class="shield" aria-hidden="true"><small>Nº</small>${ROMAN[i + 1]}</span>
       <div><h3>${esc(d.title)}</h3><p>${d.dow} ${d.day}, ${esc(d.place)}</p></div>
       <div class="journey-km" aria-hidden="true"><b id="jkm">0</b><span>km</span></div>`;
   }
@@ -274,7 +295,7 @@
     if (journey.ready) {
       journey.path.style.strokeDashoffset = calm ? 0 : 1 - p;
       const pt = journey.path.getPointAtLength((calm ? 1 : p) * journey.len);
-      journey.van.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${(pt.y - 4).toFixed(1)})`);
+      journey.van.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
       journey.stops.forEach((g, i) => g.classList.toggle("on", calm || p >= journey.stopF[i] - 0.002));
       const di = Math.max(0, journey.dayEndF.findIndex((f) => p <= f + 1e-6));
       renderCard(di);
@@ -434,15 +455,15 @@
         const map = L.map(box, { scrollWheelZoom: false, tap: true });
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18,
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · route: OSRM' }).addTo(map);
-        const line = L.polyline(geo.geometry.coordinates.map(([lo, la]) => [la, lo]), { color: "#0B4F9C", weight: 4, opacity: .85 }).addTo(map);
+        const line = L.polyline(geo.geometry.coordinates.map(([lo, la]) => [la, lo]), { color: "#D8C08A", weight: 4, opacity: .95 }).addTo(map);
         map.fitBounds(line.getBounds(), { padding: [20, 20] });
         const moodColor = (m) => getComputedStyle(document.documentElement).getPropertyValue(`--${m}`).trim() || "#14232A";
         T.days.forEach((d) => {
           d.plan.filter((s) => s.map).forEach((s) => {
-            L.circleMarker(s.map, { radius: 7, color: "#fff", weight: 2, fillColor: moodColor(s.mood), fillOpacity: 1 }).addTo(map)
+            L.circleMarker(s.map, { radius: 7, color: "#0E0A12", weight: 2, fillColor: moodColor(s.mood), fillOpacity: 1 }).addTo(map)
               .bindPopup(`<b>${esc(s.what)}</b><br>${d.dow} ${d.day}, ${esc(s.t)}<br><a href="${gmaps(s.map[0], s.map[1])}" target="_blank" rel="noopener">Directions</a>`);
           });
-          if (d.sleep) L.marker([d.sleep.lat, d.sleep.lon], { icon: L.divIcon({ className: "", html: '<div class="p-sign" style="width:26px;height:26px;font-size:16px;border-width:2px">P</div>', iconSize: [26, 26] }) })
+          if (d.sleep) L.marker([d.sleep.lat, d.sleep.lon], { icon: L.divIcon({ className: "", html: '<div class="moon-pin">☾</div>', iconSize: [26, 26] }) })
             .addTo(map).bindPopup(`<b>${esc(d.sleep.name)}</b><br>${d.dow} night, ${esc(d.sleep.price)}<br><a href="${gmaps(d.sleep.lat, d.sleep.lon)}" target="_blank" rel="noopener">Navigate</a>`);
         });
         const fuelLayer = L.layerGroup().addTo(map);
