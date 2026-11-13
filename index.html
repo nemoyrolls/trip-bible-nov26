@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Road Atlas, November</title>
+  <meta name="description" content="Six days by camper van: Delft, the Brenner, Venice, Verona, the Alps and Marburg. 14–19 Nov 2026.">
+  <meta name="theme-color" content="#E8ECEB" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16202A" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='12' width='56' height='40' rx='8' fill='%2300733E' stroke='white' stroke-width='4'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='700' font-size='24' fill='white' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Overpass:wght@400..900&display=swap">
+  <link rel="preload" as="image" type="image/avif" href="img/cover-960.avif" imagesrcset="img/cover-480.avif 480w, img/cover-960.avif 960w, img/cover-1600.avif 1600w" imagesizes="100vw">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#days">Skip to the days</a>
+
+  <nav class="daynav" aria-label="Days">
+    <a class="odo" href="#top" aria-label="Back to top. Distance driven so far">
+      <span class="odo-num num" id="odo">0</span><span class="odo-unit">km</span>
+    </a>
+    <ol id="daynav-list"></ol>
+  </nav>
+
+  <header class="cover" id="top">
+    <picture class="cover-img" id="cover-pic"></picture>
+    <div class="cover-text">
+      <h1>Road Atlas, <span>November</span></h1>
+      <p class="cover-route" id="cover-route"></p>
+      <p class="cover-sub" id="cover-sub"></p>
+      <p class="cover-cue" aria-hidden="true">Scroll to start driving</p>
+    </div>
+    <p class="credit cover-credit" id="cover-credit"></p>
+  </header>
+
+  <section class="journey" id="journey" aria-label="The whole route, drawn as you scroll">
+    <div class="journey-sticky">
+      <svg class="journey-map" id="journey-map" role="img" aria-label="Route map: Delft, Frankfurt, Bolzano, Venice, Verona, Garmisch, Reutte, Ulm, Marburg"></svg>
+      <div class="journey-card" id="journey-card" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <main id="days"></main>
+
+  <section class="tools" id="map" aria-labelledby="h-map">
+    <div class="tools-inner">
+      <h2 class="tools-h" id="h-map">The map</h2>
+      <p class="tools-lede">Every stop and the real route. Tap a pin for directions. Fuel pins show live Austrian diesel prices.</p>
+      <div class="leaflet-box" id="leaflet" role="region" aria-label="Interactive route map"><p class="map-wait">Loading the map…</p></div>
+      <div class="links">
+        <a class="btn" id="gmaps-all" target="_blank" rel="noopener">Open the whole route in Google Maps</a>
+        <button class="btn ghost" id="locate" type="button">Show where we are</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools" id="live" aria-labelledby="h-live">
+    <div class="tools-inner">
+      <h2 class="tools-h" id="h-live">Weather and diesel, live</h2>
+      <p class="tools-lede" id="wx-status">Forecast for each night's stop, from Open-Meteo.</p>
+      <ol class="wx" id="wx"></ol>
+      <h3 class="section-h fuel-h">Cheapest diesel in Austria</h3>
+      <p class="tools-lede">Austria publishes live pump prices (E-Control). Fill up at Kufstein on Sunday and around Innsbruck on Wednesday.</p>
+      <ol class="fuel" id="fuel"><li class="fuel-wait">Loading prices…</li></ol>
+      <div class="links">
+        <button class="btn ghost" id="fuel-near" type="button">Cheapest near me</button>
+      </div>
+      <p class="fuel-other">Germany: <a href="https://www.clever-tanken.de/" target="_blank" rel="noopener">clever-tanken.de</a> or <a href="https://www.adac.de/verkehr/tanken-kraftstoff-antrieb/kraftstoffpreise/" target="_blank" rel="noopener">ADAC prices</a>. Italy: <a href="https://carburanti.mise.gov.it/ospzSearch/home" target="_blank" rel="noopener">Osservaprezzi (government map)</a>. Austria in full: <a href="https://www.spritpreisrechner.at/" target="_blank" rel="noopener">spritpreisrechner.at</a>.</p>
+    </div>
+  </section>
+
+  <section class="tools" id="budget" aria-labelledby="h-budget">
+    <div class="tools-inner">
+      <h2 class="tools-h" id="h-budget">The budget</h2>
+      <p class="tools-lede">What the trip costs on top of the van rental and food, split between two people.</p>
+      <div class="budget" id="budget-box"></div>
+    </div>
+  </section>
+
+  <section class="tools" id="lists" aria-labelledby="h-lists">
+    <div class="tools-inner">
+      <h2 class="tools-h" id="h-lists">Before the first kilometre</h2>
+      <p class="tools-lede">Tick things off. Ticks are saved on this phone only, so each of you keeps your own list.</p>
+      <div class="lists">
+        <section aria-labelledby="h-docs"><h3 class="section-h" id="h-docs">Papers and rules</h3><ul class="checks" id="docs"></ul></section>
+        <section aria-labelledby="h-pack"><h3 class="section-h" id="h-pack">Pack list</h3><ul class="checks" id="pack"></ul></section>
+      </div>
+      <button class="btn ghost" id="reset-lists" type="button">Clear all ticks</button>
+      <h3 class="section-h rules-h">The rules of the road</h3>
+      <div class="rules" id="rules"></div>
+    </div>
+  </section>
+
+  <section class="tools sos" id="sos" aria-labelledby="h-sos">
+    <div class="tools-inner">
+      <h2 class="tools-h" id="h-sos">If something goes wrong</h2>
+      <p class="tools-lede">Tap a number to call. 112 is free and works in every country on this trip, even when the screen is locked or you have no credit. Operators often speak English.</p>
+      <ul class="sos-list" id="sos-list"></ul>
+      <p class="sos-note">Also keep the rental company's breakdown number and your insurance details saved offline. They're not on this page because the site is public.</p>
+    </div>
+  </section>
+
+  <a class="fab" href="#map" aria-label="Jump to the map">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a5.5 5.5 0 0 0-5.5 5.5C2.5 10 8 16 8 16s5.5-6 5.5-10.5A5.5 5.5 0 0 0 8 0Zm0 7.6a2.1 2.1 0 1 1 0-4.2 2.1 2.1 0 0 1 0 4.2Z"/></svg>
+    Map
+  </a>
+
+  <footer class="foot">
+    <p>Built for two people and one van. Distances: OSRM. Weather: Open-Meteo. Photos: Wikimedia Commons, credited under each image.</p>
+  </footer>
+
+  <script src="js/trip.js" defer></script>
+  <script src="js/photos.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

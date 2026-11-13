@@ -1,0 +1,529 @@
+/* =====================================================================
+   ROAD ATLAS, NOVEMBER — style sheet
+   1. Tokens (colour, type, space)   2. Base   3. Navigation   4. Cover
+   5. Day spread: hero · sign · road · sleep · gallery · altitude
+   6. Scroll motion (native scroll-driven animations + fallback)
+   Design idea: borrow the visual language of European roads. E-road
+   shields number the days, motorway signs carry the drive, a P-sign
+   marks where we sleep. Everything else stays quiet.
+   ===================================================================== */
+
+/* ---------- 1. TOKENS ---------- */
+:root {
+  color-scheme: light dark;
+  /* base: cool November fog, not paper cream */
+  --fog: #E8ECEB;
+  --paper: #F7F9F8;
+  --ink: #14232A;
+  --ink-2: #44555C;
+  --rule: #C6D0CF;
+  /* road vernacular */
+  --eroad: #00733E;      /* E-road route shield green */
+  --mway: #0B4F9C;       /* motorway sign blue */
+  --plate: #F6C700;      /* yellow supplementary plate / B-road */
+  --sign-ink: #FFFFFF;
+  /* moods */
+  --awe: #1F6480;
+  --shock: #FF5A00;
+  --calm: #56704F;
+  --vibrant: #B5175A;
+  --mood: var(--awe);
+  --on-mood: #FFFFFF;
+  --bg: color-mix(in oklab, var(--fog) 90%, var(--mood));
+
+  /* type */
+  --sans: "Overpass", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --s-1: 0.8125rem;   /* 13 */
+  --s0: 1.0625rem;    /* 17 body */
+  --s1: 1.25rem;
+  --s2: 1.625rem;
+  --s3: clamp(2rem, 6vw, 3rem);
+  --s4: clamp(2.75rem, 11vw, 6.5rem);   /* day titles */
+
+  /* space: 8px rhythm */
+  --g1: .5rem; --g2: 1rem; --g3: 1.5rem; --g4: 2rem; --g6: 3rem; --g8: 4rem;
+  --gutter: 16px;
+  --radius-sign: 10px;
+}
+:root[data-mood="awe"]     { --mood: var(--awe); }
+:root[data-mood="shock"]   { --mood: var(--shock); --on-mood: var(--ink-fixed, #14232A); }
+:root[data-mood="calm"]    { --mood: var(--calm); }
+:root[data-mood="vibrant"] { --mood: var(--vibrant); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fog: #16202A; --paper: #1C2833; --ink: #E4EAE8; --ink-2: #A3B1B4; --rule: #2E3D49;
+    --awe: #5FB0D0; --shock: #FF7A2E; --calm: #8FB284; --vibrant: #F0649E;
+    --bg: color-mix(in oklab, var(--fog) 86%, var(--mood));
+  }
+}
+:root[data-theme="dark"] {
+  --fog: #16202A; --paper: #1C2833; --ink: #E4EAE8; --ink-2: #A3B1B4; --rule: #2E3D49;
+  --awe: #5FB0D0; --shock: #FF7A2E; --calm: #8FB284; --vibrant: #F0649E;
+  --bg: color-mix(in oklab, var(--fog) 86%, var(--mood));
+}
+
+/* ---------- 2. BASE ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 64px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 var(--s0)/1.55 var(--serif);
+  font-optical-sizing: auto;
+  transition: background-color .9s ease;
+  overflow-x: clip;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-underline-offset: .18em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--mood); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--sans); margin: 0; line-height: .95; letter-spacing: -.02em; }
+.num { font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--ink); color: var(--fog); padding: 8px 12px; z-index: 99; }
+.skip:focus { left: 8px; }
+.credit {
+  font: 400 .6875rem/1.35 var(--sans);
+  color: var(--ink-2);
+  margin: .35rem 0 0;
+}
+.credit a { color: inherit; }
+
+/* ---------- 3. DAY NAVIGATION (route shields) ---------- */
+.daynav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: var(--g1);
+  padding: 8px var(--gutter);
+  padding-top: max(8px, env(safe-area-inset-top));
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in oklab, var(--rule) 60%, transparent);
+}
+/* odometer in an E-road shield: counts the km as you scroll */
+.odo {
+  flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 3px;
+  height: 36px; padding: 9px 7px 0; border-radius: 6px;
+  background: var(--eroad); color: #fff; text-decoration: none;
+  border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--eroad);
+}
+.odo-num { font: 800 1rem/1 var(--sans); min-width: 3.4ch; text-align: right; font-variant-numeric: tabular-nums; }
+.odo-unit { font: 600 .6875rem/1 var(--sans); opacity: .85; }
+.daynav ol { list-style: none; display: flex; gap: 4px; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
+.daynav ol::-webkit-scrollbar { display: none; }
+.daynav li a {
+  display: grid; place-items: center;
+  min-width: 40px; height: 44px; padding: 0 6px;
+  border-radius: 8px;
+  font: 700 var(--s-1)/1 var(--sans);
+  text-decoration: none; color: var(--ink-2);
+  border: 1.5px solid var(--rule);
+  transition: background-color .3s, color .3s, border-color .3s;
+}
+.daynav li a small { display: block; font-weight: 500; font-size: .625rem; margin-top: 2px; }
+.daynav li a[aria-current="true"] { background: var(--eroad); border-color: var(--eroad); color: #fff; }
+
+/* ---------- 4. COVER ---------- */
+.cover {
+  position: relative; isolation: isolate;
+  min-height: 100svh;
+  display: grid; align-items: end;
+  padding: var(--g8) var(--gutter) var(--g6);
+  color: #fff;
+  overflow: hidden;
+  margin-top: -61px;  /* slide under the translucent nav */
+}
+.cover-img, .cover-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.cover::after {  /* legibility scrim: functional, bottom only */
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to top, rgba(10,20,26,.82) 0%, rgba(10,20,26,.35) 45%, transparent 75%);
+}
+.cover h1 { font-size: clamp(3.25rem, 15vw, 9.5rem); font-weight: 900; line-height: .86; letter-spacing: -.045em; }
+.cover h1 span { display: block; }
+.cover-route { font: 600 var(--s1)/1.3 var(--sans); margin: var(--g3) 0 0; max-width: 32ch; }
+.cover-sub { font: 400 var(--s1)/1.45 var(--serif); margin: var(--g1) 0 0; max-width: 36ch; opacity: .9; }
+.cover-cue {
+  margin: var(--g4) 0 0; font: 600 var(--s-1)/1 var(--sans); opacity: .8;
+  display: flex; align-items: center; gap: 10px;
+}
+.cover-cue::after { content: ""; width: 1.5px; height: 28px; background: currentColor; transform-origin: top; animation: cue 1.8s ease-in-out infinite; }
+@keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+/* cover title: split into letters by JS, rises once on load */
+.cover h1 .w { display: inline-block; white-space: nowrap; }
+.cover h1 .ch { display: inline-block; }
+.cover-route .caret { display: inline-block; width: .5ch; height: 1em; margin-left: 2px; vertical-align: -.12em; background: currentColor; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.cover-credit { position: absolute; right: var(--gutter); bottom: 10px; color: rgba(255,255,255,.7); max-width: 60%; text-align: right; }
+
+/* ---------- 4b. JOURNEY: the whole route, drawn by your scroll ---------- */
+.journey { position: relative; height: 420vh; }
+.journey-sticky {
+  position: sticky; top: 61px; height: calc(100svh - 61px);
+  display: grid; grid-template-rows: minmax(0, 1fr) auto;
+  padding: var(--g2) var(--gutter) var(--g3);
+  max-width: 760px; margin: 0 auto;
+}
+.journey-map { width: 100%; height: 100%; overflow: visible; }
+.journey-map .ghost { fill: none; stroke: var(--rule); stroke-width: 2.4; stroke-dasharray: 2 5; stroke-linecap: round; }
+.journey-map .route { fill: none; stroke: var(--ink); stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.journey-map .country { font: 500 12px var(--serif); font-style: italic; fill: var(--ink-2); opacity: .7; }
+.journey-map .stop circle { fill: var(--fog); stroke: var(--ink-2); stroke-width: 2; transition: fill .3s, stroke .3s, r .3s; }
+.journey-map .stop text { font: 700 11.5px var(--sans); fill: var(--ink-2); transition: fill .3s; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.journey-map .stop.night circle { stroke-width: 2.5; }
+.journey-map .stop.on circle { fill: var(--eroad); stroke: #fff; }
+.journey-map .stop.on text { fill: var(--ink); }
+.journey-map .van rect, .journey-map .van path { fill: var(--shock); }
+.journey-map .van circle { fill: var(--ink); }
+.journey-card {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 14px;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 14px;
+}
+.journey-card .shield { font-size: 1.75rem; }
+.journey-card h3 { font-size: var(--s1); line-height: 1.1; letter-spacing: -.01em; }
+.journey-card p { margin: 2px 0 0; font: 400 .875rem/1.35 var(--sans); color: var(--ink-2); }
+.journey-km { text-align: right; }
+.journey-km b { display: block; font: 900 var(--s2)/1 var(--sans); font-variant-numeric: tabular-nums; }
+.journey-km span { font: 500 .75rem/1 var(--sans); color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) {
+  .journey { height: auto; }
+  .journey-sticky { position: static; height: 80svh; }
+  .journey-map .route { stroke-dashoffset: 0; }
+}
+
+/* ---------- 5. DAY SPREAD ---------- */
+.day { position: relative; padding-bottom: var(--g8); }
+
+/* 5a. hero */
+.day-hero {
+  position: relative; isolation: isolate;
+  min-height: 88svh;
+  display: grid; align-items: end;
+  padding: var(--g8) var(--gutter) var(--g4);
+  color: #fff;
+  overflow: hidden;
+}
+.day-hero picture { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
+.day-hero picture img { width: 100%; height: 100%; object-fit: cover; background-size: cover; background-position: center; }
+.day-hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to top, rgba(8,16,22,.86) 0%, rgba(8,16,22,.4) 42%, transparent 70%);
+}
+.hero-text { max-width: 760px; }
+.shield {
+  display: inline-grid; place-items: center;
+  min-width: 2.3em; padding: .12em .32em .02em;
+  font: 800 clamp(2.4rem, 10vw, 4.25rem)/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  background: var(--eroad); color: #fff;
+  border: .07em solid #fff; border-radius: .16em;
+  box-shadow: 0 0 0 .05em var(--eroad);
+  transform-origin: left bottom;
+}
+.day-when { font: 600 var(--s1)/1 var(--sans); margin: var(--g2) 0 var(--g1); opacity: .9; }
+.day-hero h2 { font-size: var(--s4); font-weight: 900; letter-spacing: -.04em; }
+.day-lede { font: 400 var(--s1)/1.45 var(--serif); max-width: 34ch; margin: var(--g2) 0 0; }
+.mood-tag {
+  display: inline-flex; align-items: center; gap: .4em;
+  margin-top: var(--g2);
+  font: 700 var(--s-1)/1 var(--sans);
+  padding: .5em .8em .4em; border-radius: 999px;
+  background: var(--m); color: var(--on-m, #fff);
+}
+.mood-tag::before { content: ""; width: .55em; height: .55em; border-radius: 50%; background: currentColor; }
+.hero-credit { position: absolute; right: var(--gutter); bottom: 8px; color: rgba(255,255,255,.65); max-width: 55%; text-align: right; }
+[data-m="awe"]     { --m: var(--awe); }
+[data-m="shock"]   { --m: var(--shock); --on-m: #14232A; }
+[data-m="calm"]    { --m: var(--calm); }
+[data-m="vibrant"] { --m: var(--vibrant); }
+
+/* 5b. body grid */
+.day-body {
+  display: grid; gap: var(--g4);
+  grid-template-columns: minmax(0, 1fr);  /* without minmax(0,…) a wide gallery stretches the column */
+  max-width: 1180px; margin: 0 auto;
+  padding: var(--g4) var(--gutter) 0;
+}
+@media (min-width: 900px) {
+  .day-body { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--g6); align-items: start; }
+  .day-side { position: sticky; top: 84px; display: grid; gap: var(--g3); }
+  .day-wide { grid-column: 1 / -1; }
+}
+.day-side { display: grid; gap: var(--g3); }
+.day-body > * { min-width: 0; }
+
+/* 5c. motorway direction sign */
+.sign {
+  background: var(--mway); color: var(--sign-ink);
+  border-radius: var(--radius-sign);
+  padding: 6px;
+  font-family: var(--sans);
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 18px 40px -24px rgba(11,79,156,.55);
+}
+.sign-inner { border: 2.5px solid #fff; border-radius: 6px; padding: 12px 14px 10px; }
+.sign-legs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.sign-legs li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 12px; }
+.sign-dest { font: 700 var(--s1)/1.1 var(--sans); }
+.sign-km { font: 800 var(--s1)/1 var(--sans); font-variant-numeric: tabular-nums; }
+.sign-roads { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+.road-no {
+  font: 700 .6875rem/1 var(--sans); padding: 3px 5px 2px; border-radius: 3px;
+  border: 1.5px solid #fff; color: #fff;
+}
+.road-no.b { background: var(--plate); border-color: var(--plate); color: #111; }
+.sign-total {
+  display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 8px;
+  margin-top: 12px; padding-top: 10px; border-top: 2px solid rgba(255,255,255,.85);
+}
+.sign-total div { display: grid; gap: 2px; }
+.sign-total b { font: 800 var(--s2)/1 var(--sans); font-variant-numeric: tabular-nums; }
+.sign-total span { font: 500 .75rem/1.2 var(--sans); opacity: .85; }
+.plate {  /* yellow supplementary plate under the sign */
+  margin: 6px 0 0; background: var(--plate); color: #111;
+  border-radius: 6px; padding: 8px 12px 6px;
+  font: 600 var(--s-1)/1.35 var(--sans);
+}
+
+/* 5d. P-sign sleep card */
+.sleep {
+  display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: start;
+  background: var(--paper); border-radius: 12px; padding: 14px;
+  border: 1px solid var(--rule);
+}
+.p-sign {
+  width: 52px; height: 52px; border-radius: 8px; background: var(--mway);
+  border: 2.5px solid #fff; box-shadow: 0 0 0 1.5px var(--mway);
+  display: grid; place-items: center; color: #fff; font: 900 2rem/1 var(--sans);
+}
+.sleep h3 { font-size: var(--s1); line-height: 1.15; letter-spacing: -.01em; }
+.sleep-price { font: 800 var(--s1)/1 var(--sans); color: var(--ink); margin: 6px 0 0; }
+.sleep p { margin: 6px 0 0; font-size: .9375rem; color: var(--ink-2); }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 14px; border-radius: 999px;
+  font: 600 var(--s-1)/1 var(--sans); text-decoration: none;
+  background: var(--ink); color: var(--fog);
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--rule); }
+.btn svg { width: 14px; height: 14px; }
+.sunset { font: 500 var(--s-1)/1.3 var(--sans); color: var(--ink-2); margin: 0; }
+
+/* 5e. the road: timeline as a road with km-posts */
+.road { list-style: none; margin: 0; padding: 0 0 0 58px; position: relative; }
+.road::before {  /* asphalt with dashed centre line */
+  content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 14px; border-radius: 7px;
+  background:
+    repeating-linear-gradient(to bottom, rgba(255,255,255,.9) 0 10px, transparent 10px 22px) center / 2px 100% no-repeat,
+    #2B3339;
+  transform-origin: top;
+}
+.road li { position: relative; padding: 0 0 var(--g3); }
+.road li:last-child { padding-bottom: 0; }
+.post {  /* km-post: white tablet holding the time */
+  position: absolute; left: -58px; top: 0; width: 54px;
+  display: grid; place-items: center;
+  font: 800 .8125rem/1 var(--sans); font-variant-numeric: tabular-nums;
+  padding: 7px 0 5px; border-radius: 5px;
+  background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--rule);
+}
+.post::after { content: ""; position: absolute; left: 50%; bottom: -1px; width: 70%; height: 4px; translate: -50% 0; border-radius: 2px; background: var(--m); }
+.stop-what { margin: 0; font-size: var(--s0); line-height: 1.45; }
+.stop-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.price { font: 700 var(--s-1)/1 var(--sans); padding: 5px 8px 4px; border-radius: 4px; background: color-mix(in oklab, var(--m) 16%, var(--paper)); }
+.stop-meta .btn { min-height: 34px; padding: 0 12px; }
+
+/* 5f. gallery: swipeable, snapping */
+.gallery {
+  display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 4px var(--gutter) 12px; margin: 0 calc(-1 * var(--gutter));
+  scrollbar-width: thin; overscroll-behavior-x: contain;
+}
+.gallery figure { flex: 0 0 min(82vw, 520px); margin: 0; scroll-snap-align: center; }
+.gallery img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 10px; background-size: cover; background-position: center; }
+.gallery figcaption { font: 400 .9375rem/1.4 var(--serif); margin-top: 8px; }
+.section-h { font: 800 var(--s2)/1.05 var(--sans); letter-spacing: -.02em; margin: 0 0 var(--g2); }
+
+/* 5g. altitude profile */
+.alt { background: var(--paper); border-radius: 14px; padding: var(--g3) var(--gutter) var(--g2); border: 1px solid var(--rule); }
+.alt svg { width: 100%; height: auto; display: block; overflow: visible; }
+.alt .area { fill: var(--m); opacity: .18; }
+.alt .line { fill: none; stroke: var(--m); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.alt .grid { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 5; }
+.alt .lbl { font: 700 13px var(--sans); fill: var(--ink); }
+.alt .lbl-s { font: 500 11px var(--sans); fill: var(--ink-2); }
+.alt .pin { fill: var(--ink); }
+.alt p { margin: var(--g1) 0 0; font-size: .9375rem; color: var(--ink-2); }
+
+/* ---------- 5h. MAP + LIVE DATA ---------- */
+.tools { padding: var(--g6) 0 var(--g2); }
+.tools-inner { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+.tools-h { font-size: var(--s3); font-weight: 900; letter-spacing: -.03em; }
+.tools-lede { margin: var(--g1) 0 var(--g3); max-width: 60ch; color: var(--ink-2); }
+.leaflet-box {
+  height: min(70svh, 560px); border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--rule); background: var(--paper); position: relative; z-index: 0;
+}
+.map-wait { margin: 0; padding: var(--g3); font: 500 var(--s-1) var(--sans); color: var(--ink-2); }
+.leaflet-container { font: 400 .875rem/1.4 var(--sans); }
+.leaflet-popup-content { margin: 12px 14px; }
+.leaflet-popup-content b { font-size: .9375rem; }
+.leaflet-popup-content a { font-weight: 700; }
+.fuel-pin {
+  background: var(--plate); color: #111; font: 800 11px/1 var(--sans);
+  padding: 4px 5px 3px; border-radius: 4px; border: 1.5px solid #111; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.me-pin { width: 16px; height: 16px; border-radius: 50%; background: #1a73e8; border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(26,115,232,.25); }
+button.btn { border: 0; cursor: pointer; }
+button.btn.ghost { border: 1.5px solid var(--rule); }
+
+/* weather strip: one tile per night */
+.wx { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.wx li { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; display: grid; gap: 4px; font-family: var(--sans); }
+.wx .wx-day { font: 700 var(--s-1)/1.2 var(--sans); color: var(--ink-2); }
+.wx .wx-place { font: 800 1rem/1.1 var(--sans); }
+.wx svg { width: 34px; height: 34px; color: var(--ink); }
+.wx .wx-t { font: 800 var(--s2)/1 var(--sans); font-variant-numeric: tabular-nums; }
+.wx .wx-t span { font-weight: 500; color: var(--ink-2); font-size: 1rem; }
+.wx .wx-meta { font: 500 .8125rem/1.35 var(--sans); color: var(--ink-2); }
+.wx .wx-alert { font: 700 .75rem/1.3 var(--sans); background: var(--plate); color: #111; border-radius: 4px; padding: 4px 6px 3px; }
+.fuel-h { margin-top: var(--g6); }
+.fuel { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fuel li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; }
+.fuel .fuel-price { font: 900 var(--s1)/1 var(--sans); font-variant-numeric: tabular-nums; background: var(--plate); color: #111; border-radius: 6px; padding: 7px 8px 5px; }
+.fuel .fuel-name { font: 700 .9375rem/1.25 var(--sans); }
+.fuel .fuel-where { font: 400 .8125rem/1.3 var(--sans); color: var(--ink-2); }
+.fuel .fuel-wait, .fuel .fuel-note { display: block; font: 500 var(--s-1) var(--sans); color: var(--ink-2); }
+.fuel-other { font: 400 .9375rem/1.5 var(--serif); color: var(--ink-2); margin-top: var(--g3); max-width: 60ch; }
+.day-wx { margin: 0; font: 500 var(--s-1)/1.4 var(--sans); color: var(--ink-2); }
+.day-wx b { color: var(--ink); }
+
+/* ---------- 5i. BUDGET ---------- */
+.budget { display: grid; gap: var(--g3); }
+@media (min-width: 900px) { .budget { grid-template-columns: 1fr 1.4fr; align-items: start; } }
+.budget-total {
+  background: var(--eroad); color: #fff; border-radius: 14px; padding: var(--g3);
+  border: 3px solid #fff; box-shadow: 0 0 0 2px var(--eroad);
+  font-family: var(--sans);
+}
+.budget-total b { display: block; font: 900 clamp(3rem, 16vw, 5rem)/1 var(--sans); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.budget-total span { font: 600 var(--s1)/1.3 var(--sans); }
+.budget-total p { margin: var(--g1) 0 0; font: 400 .9375rem/1.45 var(--sans); opacity: .9; }
+.budget-toggle { display: flex; gap: 10px; align-items: center; margin-top: var(--g2); font: 600 .9375rem/1.3 var(--sans); cursor: pointer; }
+.budget-toggle input { width: 22px; height: 22px; accent-color: #fff; }
+.btable { width: 100%; border-collapse: collapse; font-family: var(--sans); background: var(--paper); border-radius: 14px; overflow: hidden; border: 1px solid var(--rule); }
+.btable caption { text-align: left; font: 800 var(--s1)/1.2 var(--sans); padding: 0 0 8px; }
+.btable th, .btable td { padding: 10px 12px; text-align: left; vertical-align: top; border-top: 1px solid var(--rule); font-size: .9375rem; line-height: 1.35; }
+.btable thead th { border-top: 0; font: 700 var(--s-1)/1.2 var(--sans); color: var(--ink-2); }
+.btable td.eur, .btable th.eur { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; }
+.btable tr.sub td { font-weight: 800; background: color-mix(in oklab, var(--rule) 30%, var(--paper)); }
+.btable a { font-size: .8125rem; color: var(--ink-2); }
+
+/* ---------- 5j. CHECKLISTS ---------- */
+.lists { display: grid; gap: var(--g4); margin-bottom: var(--g3); }
+@media (min-width: 900px) { .lists { grid-template-columns: 1fr 1fr; } }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checks label {
+  position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: center;
+  min-height: 48px; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  background: var(--paper); border: 1px solid var(--rule);
+  font: 400 1rem/1.35 var(--serif); transition: background-color .25s, color .25s;
+}
+.checks input { appearance: none; -webkit-appearance: none; margin: 0; width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--ink-2); display: grid; place-items: center; background: var(--paper); cursor: pointer; }
+.checks input::after { content: ""; width: 12px; height: 7px; border: solid #fff; border-width: 0 0 3px 3px; transform: rotate(-45deg) translate(1px, -1px) scale(0); transition: transform .2s; }
+.checks input:checked { background: var(--eroad); border-color: var(--eroad); }
+.checks input:checked::after { transform: rotate(-45deg) translate(1px, -1px) scale(1); }
+.checks input:focus-visible { outline: 3px solid var(--mood); outline-offset: 2px; }
+.checks label:has(input:checked) { color: var(--ink-2); background: color-mix(in oklab, var(--eroad) 7%, var(--paper)); }
+.checks label:has(input:checked) .txt { text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--ink-2) 60%, transparent); }
+/* the stamp: plays only when you tick something, as confirmation */
+.stamp {
+  position: absolute; right: 10px; top: 50%; translate: 0 -50%;
+  font: 900 .6875rem/1 var(--sans); color: var(--eroad); border: 2px solid var(--eroad); border-radius: 5px;
+  padding: 4px 6px 2px; rotate: -8deg; opacity: 0; pointer-events: none;
+}
+.checks label:has(input:checked) .stamp { opacity: .85; }
+.checks label.just .stamp { animation: stamp .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes stamp { from { transform: scale(2.2); opacity: 0; } to { transform: scale(1); opacity: .85; } }
+.checks .txt { padding-right: 44px; }
+.rules-h { margin-top: var(--g6); }
+.rules { display: grid; gap: 10px; }
+@media (min-width: 700px) { .rules { grid-template-columns: 1fr 1fr; } }
+.rule { background: var(--paper); border: 1px solid var(--rule); border-left: 6px solid var(--mway); border-radius: 10px; padding: 12px 14px; }
+.rule h4 { margin: 0; font: 800 1rem/1.25 var(--sans); }
+.rule p { margin: 4px 0 0; font-size: .9375rem; line-height: 1.45; }
+.rule a { font: 600 .8125rem var(--sans); }
+
+/* ---------- 5k. EMERGENCY ---------- */
+.sos-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+@media (min-width: 700px) { .sos-list { grid-template-columns: 1fr 1fr; } }
+.sos-list a {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px;
+  min-height: 56px; padding: 10px 14px; border-radius: 12px; text-decoration: none;
+  background: var(--paper); border: 1px solid var(--rule); font-family: var(--sans);
+}
+.sos-list .what { font: 700 1rem/1.2 var(--sans); }
+.sos-list .where { grid-column: 1; font: 400 .8125rem/1.2 var(--sans); color: var(--ink-2); }
+.sos-list .num { grid-row: 1 / span 2; grid-column: 2; font: 900 var(--s1)/1 var(--sans); font-variant-numeric: tabular-nums; }
+.sos-list li.big { grid-column: 1 / -1; }
+.sos-list li.big a { background: #C8102E; border-color: #C8102E; color: #fff; min-height: 76px; }
+.sos-list li.big .where { color: rgba(255,255,255,.85); }
+.sos-list li.big .num { font-size: 2.5rem; }
+.sos-note { margin-top: var(--g3); color: var(--ink-2); font-size: .9375rem; max-width: 60ch; }
+
+/* floating map button: reachable from anywhere while on the road */
+.fab {
+  position: fixed; right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 30;
+  display: inline-flex; align-items: center; gap: 6px; height: 48px; padding: 0 16px;
+  border-radius: 999px; background: var(--mway); color: #fff; text-decoration: none;
+  font: 700 var(--s-1)/1 var(--sans); box-shadow: 0 8px 24px -8px rgba(11,79,156,.6);
+}
+.fab svg { width: 16px; height: 16px; }
+
+.foot { max-width: 1180px; margin: 0 auto; padding: var(--g6) var(--gutter); font: 400 var(--s-1)/1.5 var(--sans); color: var(--ink-2); }
+
+/* ---------- 6. SCROLL MOTION ----------
+   Everything below is tied to scroll position (not time), so it moves
+   exactly as fast as your thumb. Only transform / opacity / clip-path
+   and stroke-dashoffset animate: cheap for a phone GPU.            */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* hero photo: unmasks as it arrives, then drifts slower than the page */
+    .day-hero picture { animation: unmask linear both; animation-timeline: view(); animation-range: entry 0% entry 90%; }
+    .day-hero picture img { height: 130%; margin-top: -15%; animation: drift linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+    .cover-img img { animation: drift-cover linear both; animation-timeline: scroll(root); animation-range: 0 100svh; }
+    /* shield grows and fades as you leave the hero; title lifts away */
+    .day-hero .shield { animation: shield-out linear both; animation-timeline: view(); animation-range: exit 0% exit 70%; }
+    .day-hero .hero-text > :not(.shield) { animation: lift-out linear both; animation-timeline: view(); animation-range: exit 0% exit 80%; }
+    /* the road paves itself as you read down the day */
+    .road::before { animation: pave linear both; animation-timeline: view(); animation-range: entry 15% cover 55%; }
+    .post { animation: post-on linear both; animation-timeline: view(); animation-range: entry 70% cover 35%; }
+    /* gallery: the centred photo is crisp, neighbours recede */
+    .gallery figure { animation: carousel linear both; animation-timeline: view(inline); }
+    /* altitude line draws itself */
+    .alt .line { stroke-dasharray: 1; animation: draw linear both; animation-timeline: view(); animation-range: entry 30% cover 50%; }
+    .alt .area { animation: fill-in linear both; animation-timeline: view(); animation-range: cover 30% cover 55%; }
+  }
+  /* fallback (older Safari / Firefox): IntersectionObserver adds .in */
+  .no-sda .road::before { transform: scaleY(0); transition: transform 1.4s cubic-bezier(.2,.7,.2,1); }
+  .no-sda .road.in::before { transform: none; }
+  .no-sda .alt .line { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.6s cubic-bezier(.3,.6,.2,1); }
+  .no-sda .alt.in .line { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cover h1 .ch { animation: rise .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 32ms + 120ms); }
+}
+@keyframes rise { from { transform: translateY(55%) rotate(4deg); opacity: 0; filter: blur(8px); } }
+@keyframes unmask     { from { clip-path: inset(6% 5% 0 5% round 22px); } to { clip-path: inset(0 0 0 0 round 0); } }
+@keyframes drift      { from { transform: translateY(-6%) scale(1.06); } to { transform: translateY(10%) scale(1.12); } }
+@keyframes drift-cover{ from { transform: scale(1.04); } to { transform: translateY(14%) scale(1.14); } }
+@keyframes shield-out { to { transform: scale(1.7) translateY(-30%); opacity: 0; } }
+@keyframes lift-out   { to { transform: translateY(-40px); opacity: 0; } }
+@keyframes pave       { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes post-on    { from { background: var(--paper); color: var(--ink-2); } to { background: var(--m); color: var(--on-m, #fff); border-color: var(--m); } }
+@keyframes carousel   { 0%, 100% { transform: scale(.9); opacity: .55; } 50% { transform: none; opacity: 1; } }
+@keyframes draw       { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes fill-in    { from { opacity: 0; } to { opacity: .18; } }
