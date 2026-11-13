@@ -1,12 +1,12 @@
 /* Offline support for roaming: the page, code, route and phone-size photos are
    stored on first visit; afterwards the site opens with no signal at all.
    HTML: network first (fresh when online). Everything else: cache first. */
-const V = "november-noir-v3";
-const CORE = ["./", "index.html", "css/style.css?v=3", "js/trip.js?v=3", "js/photos.js?v=3", "js/app.js?v=3", "data/route.geojson", "data/elev-wed.json"];
+const V = "november-noir-v4";
+const CORE = ["./", "index.html", "css/style.css?v=4", "js/trip.js?v=4", "js/photos.js?v=4", "js/app.js?v=4", "data/route.geojson", "data/elev-wed.json"];
 self.addEventListener("install", (e) => e.waitUntil((async () => {
   const c = await caches.open(V);
   await c.addAll(CORE);
-  const ids = Object.keys((await (await fetch("js/photos.js?v=3")).text()).match(/"([a-z0-9-]+)": \{/g).reduce((o, m) => (o[m.slice(1, m.indexOf('"', 1))] = 1, o), {}));
+  const ids = Object.keys((await (await fetch("js/photos.js?v=4")).text()).match(/"([a-z0-9-]+)": \{/g).reduce((o, m) => (o[m.slice(1, m.indexOf('"', 1))] = 1, o), {}));
   await Promise.allSettled(ids.map((id) => c.add(`img/${id}-960.avif`)));   // ~1.4 MB, phone size
   self.skipWaiting();
 })()));

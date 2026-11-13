@@ -337,3 +337,83 @@ main, .tools, .journey, .foot { position: relative; z-index: 1; }
 @keyframes settle      { from { transform: scale(1.22); } to { transform: scale(1); } }
 @keyframes float-in    { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes draw        { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* =====================================================================
+   v4 — CENTRED, LARGER BOXES (one elegant column, like a printed menu)
+   and entrance motion WITHOUT movement: boxes only fade, so neighbours
+   can never overlap ("mash") while they arrive.
+   ===================================================================== */
+:root { --col: 680px; --gutter: 14px; }
+.day-body {
+  grid-template-columns: minmax(0, 1fr); max-width: var(--col);
+  gap: var(--g8); padding: var(--g6) var(--gutter) 0;
+}
+@media (min-width: 900px) {
+  .day-body { grid-template-columns: minmax(0, 1fr); }
+  .day-side { position: static; }
+}
+.day-side { gap: var(--g4); justify-items: stretch; }
+.day-main { padding: 0 6px; }
+
+/* drive card: bigger, centred, ceremonial */
+.sign { padding: 34px 28px 28px; border-radius: 28px; }
+.sign::before { inset: 9px; border-radius: 20px; }
+.sign-title { text-align: center; font-size: 1.25rem; margin-bottom: 20px; }
+.sign-title::before, .sign-title::after { content: "◆"; font-size: .55em; color: var(--gold); vertical-align: .3em; margin: 0 .8em; }
+.sign-legs { gap: 16px; }
+.sign-dest, .sign-km { font-size: 1.5rem; }
+.sign-total { justify-content: space-around; text-align: center; margin-top: 22px; padding-top: 20px; }
+.sign-total b { font-size: 2rem; }
+.sign-wrap > .links { justify-content: center; }
+.sign-wrap > .links .btn { min-height: 50px; padding: 0 24px; font-size: .9375rem; }
+.plate { margin: 16px auto 0; max-width: 34ch; text-align: center; border-left: 0; padding: 0; }
+.plate::before { content: "— "; } .plate::after { content: " —"; }
+
+/* sleep card: moon on top, everything centred */
+.sleep { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 32px 24px 28px; border-radius: 28px; gap: 14px; }
+.p-sign { width: 64px; height: 64px; font-size: 2rem; }
+.sleep h3 { font-size: 1.625rem; }
+.sleep-price { font-size: 1.5rem; }
+.sleep .links { justify-content: center; }
+.sleep .btn { min-height: 48px; padding: 0 22px; }
+.day-wx { text-align: center; font-size: 1.1875rem; max-width: 36ch; margin: 0 auto; }
+
+/* timeline: larger type */
+.stop-what { font-size: 1.3125rem; }
+.road li { padding-bottom: var(--g4); }
+
+/* gallery: bigger arches, centred snap */
+.gallery figure { flex-basis: min(84vw, 520px); }
+.gallery figcaption { text-align: center; font-size: 1.1875rem; }
+.gallery .credit { text-align: center; }
+.alt { padding: var(--g4) 20px var(--g3); border-radius: 28px; }
+.alt .section-h, .alt p { text-align: center; }
+
+/* tools sections: centred column, centred headings */
+.tools-inner { max-width: var(--col); }
+.tools-h, .tools-lede { text-align: center; margin-left: auto; margin-right: auto; }
+.tools > .tools-inner > .links, .tools-inner > .links { justify-content: center; }
+.section-h { text-align: center; }
+.wx { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.wx li { justify-items: center; text-align: center; padding: 20px 14px; border-radius: 22px; }
+.fuel li { padding: 16px 18px; border-radius: 20px; }
+.budget, .lists { grid-template-columns: minmax(0, 1fr) !important; }
+.budget-total { text-align: center; padding: 34px 24px; border-radius: 28px; }
+.budget-toggle { justify-content: center; }
+.checks label { min-height: 58px; padding: 14px 18px; border-radius: 18px; font-size: 1.1875rem; }
+.rules { grid-template-columns: minmax(0, 1fr) !important; }
+.rule { padding: 22px 22px; border-radius: 22px; text-align: center; }
+.sos-list { grid-template-columns: minmax(0, 1fr) !important; }
+.sos-list a { min-height: 66px; padding: 12px 20px; border-radius: 20px; }
+#reset-lists { display: flex; margin: 0 auto; }
+.fuel-other, .sos-note { text-align: center; margin-left: auto; margin-right: auto; }
+
+/* motion without movement for boxes */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .sign, .sleep, .alt { animation: fade-in linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+    .gallery figure { animation: sway-soft linear both; animation-timeline: view(inline); }
+  }
+}
+@keyframes fade-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sway-soft { 0%, 100% { transform: scale(.9); opacity: .55; } 50% { transform: none; opacity: 1; } }
